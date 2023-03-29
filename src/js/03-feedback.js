@@ -1,43 +1,53 @@
 const formEl = document.querySelector('.feedback-form');
 const storageKey = 'feedback-form-state';
+const throttleInput = require('lodash.throttle');
+
+const {
+  elements: { email, message },
+} = formEl;
 
 // Зчитування даних з полів та збереження їх у вигляді об'єкту
-formEl.addEventListener('input', saveDataForm);
-
-const formData = {
-  email: '',
-  message: '',
-};
+formEl.addEventListener('input', throttleInput(saveDataForm, 500));
 
 function saveDataForm() {
-  
-    formData.email = formEl.elements.email.value;
-    formData.message = formEl.elements.message.value;
-    localStorage.setItem('feedback-form-state', JSON.stringify(formData));
-  
+  const formData = {
+    email: '',
+    message: '',
+  };
+
+  formData.email = email.value;
+  formData.message = message.value;
+  localStorage.setItem(storageKey, JSON.stringify(formData));
 }
 
-// Заповнення полів форми даними зі сховища
+// Заповнення полів форми, збереженими даними у сховище
 document.addEventListener('DOMContentLoaded', loadDataForm);
-let savedData = JSON.parse(localStorage.getItem('feedback-form-state'));
 
 function loadDataForm() {
-  //   if (localStorage.length) {
-  //     formEl.elements.email.value = savedData.email;
-  //     formEl.elements.message.value = savedData.message;
-  //   } else {
-  //     formEl.elements.email.value = '';
-  //     formEl.elements.message.value = '';
-  //   }
+  if (!localStorage.getItem(storageKey)) {
+    email.removeAttribute('value');
+    message.textContent = '';
+  } else {
+    const savedDataFormObj = JSON.parse(localStorage.getItem(storageKey));
+    if (savedDataFormObj.email) {
+      email.setAttribute('value', savedDataFormObj.email);
+    }
+    message.textContent = savedDataFormObj.message;
+  }
 }
 
-// -----------
-// console.log(savedData);
-formEl.addEventListener('submit', onFormSubmit);
+// Очищення сховища і полів, та виведення у консоль об'єкта з поточними даними
+formEl.addEventListener('submit', update);
 
-function onFormSubmit(event) {
+function update(event) {
   event.preventDefault();
-  console.log(formData);
-  formEl.reset();
-  localStorage.clear();
+
+  if (!localStorage.getItem(storageKey)) {
+    return;
+  } else {
+    console.log(JSON.parse(localStorage.getItem(storageKey)));
+    localStorage.clear();
+    formEl.reset();
+    loadDataForm();
+  }
 }
