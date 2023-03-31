@@ -42,7 +42,7 @@ formEl.addEventListener('submit', update);
 function update(event) {
   event.preventDefault();
 
-  if (!localStorage.getItem(storageKey)) {
+  if (!localStorage.getItem(storageKey) || !message.value || !email.value) {
     return;
   } else {
     console.log(JSON.parse(localStorage.getItem(storageKey)));
